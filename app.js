@@ -492,20 +492,19 @@ function stopScanner() {
 async function startZxingScanner() {
   scannerStatus.textContent = "正在加载 iPhone 兼容扫码组件…";
   try {
-    await loadScript("https://unpkg.com/@zxing/browser@latest/umd/index.min.js");
+    await loadScript("https://unpkg.com/@zxing/browser@0.2.0/umd/zxing-browser.min.js");
     const ZXingBrowser = window.ZXingBrowser;
     if (!ZXingBrowser?.BrowserMultiFormatReader) throw new Error("ZXing unavailable");
 
     scannerStatus.textContent = "把 ISBN 条码放进框内，保持几秒钟。";
     zxingReader = new ZXingBrowser.BrowserMultiFormatReader();
-    zxingControls = await zxingReader.decodeFromVideoElement(scannerVideo, (result) => {
-      const isbn = normalizeIsbn(result?.getText?.() || result?.text || "");
-      if (!isbn) return;
-      setValue("#isbn", isbn);
-      stopScanner();
-      lookupStatus.textContent = `已识别 ISBN ${isbn}，正在查询…`;
-      lookupCurrentIsbn();
-    });
+    const result = await zxingReader.decodeOnceFromVideoElement(scannerVideo);
+    const isbn = normalizeIsbn(result?.getText?.() || result?.text || "");
+    if (!isbn) throw new Error("No ISBN detected");
+    setValue("#isbn", isbn);
+    stopScanner();
+    lookupStatus.textContent = `已识别 ISBN ${isbn}，正在查询…`;
+    lookupCurrentIsbn();
   } catch {
     scannerStatus.textContent = "兼容扫码组件加载失败，可以手动输入 ISBN 查询。";
   }
