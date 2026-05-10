@@ -97,6 +97,8 @@ const scannerVideo = document.querySelector("#scanner-video");
 const scannerStatus = document.querySelector("#scanner-status");
 let scannerStream;
 let scannerTimer;
+let zxingReader;
+let zxingControls;
 
 document.querySelector("#open-form").addEventListener("click", () => openEditor());
 document.querySelector("#close-form").addEventListener("click", closeEditor);
@@ -421,10 +423,6 @@ function applyBookInfo(bookInfo) {
 }
 
 async function startScanner() {
-  if (!("BarcodeDetector" in window)) {
-    lookupStatus.textContent = "当前浏览器不支持直接扫码，可以手动输入 ISBN 查询。";
-    return;
-  }
   if (!navigator.mediaDevices?.getUserMedia) {
     lookupStatus.textContent = "当前环境不能打开摄像头，可以手动输入 ISBN。";
     return;
@@ -440,7 +438,11 @@ async function startScanner() {
     });
     scannerVideo.srcObject = scannerStream;
     await scannerVideo.play();
-    scanLoop(new BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] }));
+    if ("BarcodeDetector" in window) {
+      scanLoop(new BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] }));
+      return;
+    }
+    await startZxingScanner();
   } catch {
     scannerStatus.textContent = "摄像头没有打开，可以手动输入 ISBN。";
   }
@@ -471,12 +473,57 @@ function scanLoop(detector) {
 function stopScanner() {
   if (scannerTimer) window.clearInterval(scannerTimer);
   scannerTimer = null;
+  if (zxingControls?.stop) {
+    zxingControls.stop();
+  }
+  zxingControls = null;
+  if (zxingReader?.reset) {
+    zxingReader.reset();
+  }
+  zxingReader = null;
   if (scannerStream) {
     scannerStream.getTracks().forEach((track) => track.stop());
   }
   scannerStream = null;
   scannerVideo.srcObject = null;
   if (scannerDialog.open) scannerDialog.close();
+}
+
+async function startZxingScanner() {
+  scannerStatus.textContent = "正在加载 iPhone 兼容扫码组件…";
+  try {
+    await loadScript("https://unpkg.com/@zxing/browser@latest/umd/index.min.js");
+    const ZXingBrowser = window.ZXingBrowser;
+    if (!ZXingBrowser?.BrowserMultiFormatReader) throw new Error("ZXing unavailable");
+
+    scannerStatus.textContent = "把 ISBN 条码放进框内，保持几秒钟。";
+    zxingReader = new ZXingBrowser.BrowserMultiFormatReader();
+    zxingControls = await zxingReader.decodeFromVideoElement(scannerVideo, (result) => {
+      const isbn = normalizeIsbn(result?.getText?.() || result?.text || "");
+      if (!isbn) return;
+      setValue("#isbn", isbn);
+      stopScanner();
+      lookupStatus.textContent = `已识别 ISBN ${isbn}，正在查询…`;
+      lookupCurrentIsbn();
+    });
+  } catch {
+    scannerStatus.textContent = "兼容扫码组件加载失败，可以手动输入 ISBN 查询。";
+  }
+}
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) {
+      resolve();
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = src;
+    script.async = true;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.append(script);
+  });
 }
 
 function normalizeIsbn(value) {
