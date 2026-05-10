@@ -1,4 +1,4 @@
-const CACHE_NAME = "shushan-v5";
+const CACHE_NAME = "shushan-v8";
 const APP_SHELL = [
   "./",
   "./index.html",

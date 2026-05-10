@@ -91,7 +91,6 @@ h1 {
 .eyebrow,
 .nav-item,
 .shelf-card p,
-.stats-grid span,
 label span {
   color: var(--muted);
 }
@@ -283,31 +282,11 @@ textarea:focus {
   box-shadow: 0 0 0 4px rgba(47, 111, 115, 0.12);
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.stats-grid article {
-  min-height: 86px;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-}
-
-.stats-grid strong {
-  display: block;
-  margin-top: 8px;
-  font-size: 28px;
-}
-
 .library-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 18px;
+  margin-top: 20px;
 }
 
 .book-card {
@@ -561,9 +540,6 @@ textarea:focus {
     flex-direction: column;
   }
 
-  .stats-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 560px) {
@@ -577,7 +553,6 @@ textarea:focus {
   }
 
   .nav-list,
-  .stats-grid,
   .form-grid,
   .isbn-panel {
     grid-template-columns: 1fr;

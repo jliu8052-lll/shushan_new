@@ -271,10 +271,6 @@ function renderStats() {
 
   const thirtyDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 30;
 
-  document.querySelector("#stat-total").textContent = books.length;
-  document.querySelector("#stat-isbn").textContent = books.filter((book) => book.isbn).length;
-  document.querySelector("#stat-zh").textContent = books.filter((book) => book.language === "zh").length;
-  document.querySelector("#stat-en").textContent = books.filter((book) => book.language === "en").length;
   document.querySelector("#month-count").textContent = `${books.filter((book) => book.updatedAt > thirtyDaysAgo).length} 本`;
 }
 
