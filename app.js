@@ -432,17 +432,18 @@ async function startScanner() {
   scannerStatus.textContent = "正在准备摄像头…";
 
   try {
+    if (!("BarcodeDetector" in window)) {
+      await startZxingScanner();
+      return;
+    }
+
     scannerStream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "environment" },
       audio: false,
     });
     scannerVideo.srcObject = scannerStream;
     await scannerVideo.play();
-    if ("BarcodeDetector" in window) {
-      scanLoop(new BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] }));
-      return;
-    }
-    await startZxingScanner();
+    scanLoop(new BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] }));
   } catch {
     scannerStatus.textContent = "摄像头没有打开，可以手动输入 ISBN。";
   }
@@ -492,21 +493,35 @@ function stopScanner() {
 async function startZxingScanner() {
   scannerStatus.textContent = "正在加载 iPhone 兼容扫码组件…";
   try {
-    await loadScript("https://unpkg.com/@zxing/browser@0.2.0/umd/zxing-browser.min.js");
+    await loadScript("https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js");
     const ZXingBrowser = window.ZXingBrowser;
-    if (!ZXingBrowser?.BrowserMultiFormatReader) throw new Error("ZXing unavailable");
+    if (!ZXingBrowser?.BrowserMultiFormatOneDReader) throw new Error("ZXing unavailable");
 
     scannerStatus.textContent = "把 ISBN 条码放进框内，保持几秒钟。";
-    zxingReader = new ZXingBrowser.BrowserMultiFormatReader();
-    const result = await zxingReader.decodeOnceFromVideoElement(scannerVideo);
-    const isbn = normalizeIsbn(result?.getText?.() || result?.text || "");
-    if (!isbn) throw new Error("No ISBN detected");
-    setValue("#isbn", isbn);
-    stopScanner();
-    lookupStatus.textContent = `已识别 ISBN ${isbn}，正在查询…`;
-    lookupCurrentIsbn();
-  } catch {
-    scannerStatus.textContent = "兼容扫码组件加载失败，可以手动输入 ISBN 查询。";
+    zxingReader = new ZXingBrowser.BrowserMultiFormatOneDReader();
+    zxingControls = await zxingReader.decodeFromConstraints(
+      {
+        video: {
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      },
+      scannerVideo,
+      (result) => {
+        const isbn = normalizeIsbn(result?.getText?.() || result?.text || "");
+        if (!isbn) return;
+        setValue("#isbn", isbn);
+        stopScanner();
+        lookupStatus.textContent = `已识别 ISBN ${isbn}，正在查询…`;
+        lookupCurrentIsbn();
+      },
+    );
+  } catch (error) {
+    scannerStatus.textContent = error?.message?.includes("ZXing")
+      ? "兼容扫码组件加载失败，可以手动输入 ISBN 查询。"
+      : "兼容扫码没有启动成功，请检查摄像头权限，或手动输入 ISBN。";
   }
 }
 
