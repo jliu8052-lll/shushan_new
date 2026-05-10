@@ -55,10 +55,6 @@
 
       <main class="main-panel">
         <header class="topbar">
-          <div>
-            <p class="eyebrow">书山藏书</p>
-            <h2>登记、查找、备注你的每一本书</h2>
-          </div>
           <button class="primary-button" id="open-form" type="button">添加书籍</button>
         </header>
 
@@ -94,7 +90,7 @@
 
         <input id="book-id" type="hidden" />
         <section class="isbn-panel" aria-label="ISBN 查询">
-          <label>
+          <label class="isbn-field">
             <span>ISBN</span>
             <input id="isbn" inputmode="numeric" maxlength="20" placeholder="扫描或输入 ISBN" />
           </label>
@@ -105,7 +101,7 @@
           <p id="lookup-status" class="form-hint" role="status"></p>
         </section>
         <div class="form-grid">
-          <label>
+          <label class="span-2">
             <span>书名</span>
             <input id="title" required maxlength="80" />
           </label>

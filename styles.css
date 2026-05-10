@@ -181,6 +181,10 @@ label span {
   gap: 18px;
 }
 
+.topbar {
+  justify-content: flex-end;
+}
+
 .eyebrow {
   margin-bottom: 6px;
   font-size: 12px;
@@ -237,7 +241,7 @@ h2 {
 }
 
 .controls {
-  margin: 28px 0 18px;
+  margin: 18px 0 0;
 }
 
 .search-field,
@@ -436,24 +440,37 @@ textarea:focus {
 }
 
 .book-dialog form {
-  padding: 22px;
+  max-height: min(86vh, 760px);
+  overflow: auto;
+  padding: 18px;
 }
 
 .isbn-panel {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px 12px;
-  margin-top: 20px;
-  padding: 14px;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px;
   border: 1px solid rgba(47, 111, 115, 0.18);
   border-radius: 8px;
   background: #f3f7f6;
 }
 
+.isbn-field {
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  min-width: 0;
+}
+
 .isbn-actions {
   display: flex;
-  align-items: end;
+  align-items: center;
   gap: 8px;
+}
+
+.isbn-actions .ghost-button {
+  min-width: 52px;
+  padding: 0 10px;
 }
 
 .form-hint {
@@ -465,13 +482,47 @@ textarea:focus {
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  margin: 20px 0 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0 10px;
+}
+
+.form-grid label {
+  grid-column: span 2;
+}
+
+.form-grid .span-2 {
+  grid-column: span 4;
+}
+
+.form-grid label,
+.notes-field,
+.isbn-panel label {
+  gap: 5px;
+}
+
+label span {
+  font-size: 13px;
+}
+
+input,
+select {
+  height: 38px;
+  padding: 0 10px;
+}
+
+textarea {
+  padding: 10px;
 }
 
 .dialog-actions {
-  margin-top: 20px;
+  position: sticky;
+  bottom: -18px;
+  margin: 12px -18px -18px;
+  padding: 12px 18px;
+  background: rgba(255, 255, 255, 0.94);
+  border-top: 1px solid var(--line);
+  backdrop-filter: blur(12px);
 }
 
 .dialog-actions > div {
@@ -537,7 +588,6 @@ textarea:focus {
   .topbar,
   .controls {
     align-items: stretch;
-    flex-direction: column;
   }
 
 }
@@ -552,14 +602,25 @@ textarea:focus {
     height: 56px;
   }
 
-  .nav-list,
-  .form-grid,
-  .isbn-panel {
+  .nav-list {
     grid-template-columns: 1fr;
   }
 
-  .isbn-actions {
-    align-items: stretch;
+  .isbn-panel {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .isbn-field {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .form-grid label,
+  .form-grid .span-2 {
+    grid-column: span 2;
   }
 
   .book-card {
