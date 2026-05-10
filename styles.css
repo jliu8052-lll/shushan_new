@@ -491,6 +491,10 @@ textarea:focus {
   grid-column: span 2;
 }
 
+.form-grid label.compact {
+  grid-column: span 1;
+}
+
 .form-grid .span-2 {
   grid-column: span 4;
 }
@@ -621,6 +625,10 @@ textarea {
   .form-grid label,
   .form-grid .span-2 {
     grid-column: span 2;
+  }
+
+  .form-grid label.compact {
+    grid-column: span 1;
   }
 
   .book-card {

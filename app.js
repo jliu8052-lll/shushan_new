@@ -131,9 +131,9 @@ form.addEventListener("submit", (event) => {
     year: Number(valueOf("#year")) || "",
     language: valueOf("#language"),
     genre: valueOf("#genre"),
-    status: valueOf("#status"),
-    format: valueOf("#format"),
-    rating: Number(valueOf("#rating")) || 0,
+    status: existing?.status || "reading",
+    format: existing?.format || "paper",
+    rating: existing?.rating || 0,
     tags: valueOf("#tags")
       .split(/[,，]/)
       .map((tag) => tag.trim())
@@ -288,9 +288,6 @@ function openEditor(book) {
   setValue("#year", book?.year || "");
   setValue("#language", book?.language || "zh");
   setValue("#genre", book?.genre || "");
-  setValue("#status", book?.status || "reading");
-  setValue("#format", book?.format || "paper");
-  setValue("#rating", book?.rating || "");
   setValue("#tags", (book?.tags || []).join("，"));
   setValue("#notes", book?.notes || "");
 
