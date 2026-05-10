@@ -1,0 +1,38 @@
+{
+  "name": "书山",
+  "short_name": "书山",
+  "description": "藏书登记、ISBN 查询和简单备注。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f2eb",
+  "theme_color": "#2f6f73",
+  "orientation": "portrait",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

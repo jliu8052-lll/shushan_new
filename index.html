@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>书山</title>
+    <meta name="theme-color" content="#2f6f73" />
+    <meta name="description" content="书山：藏书登记、ISBN 查询和简单备注。" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="书山" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="藏书导航">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">山</div>
+          <div>
+            <h1>书山</h1>
+            <p>藏书登记与备注</p>
+          </div>
+        </div>
+
+        <nav class="nav-list" aria-label="阅读状态筛选">
+          <button class="nav-item active" data-status="all">
+            <span>全部藏书</span>
+            <strong id="count-all">0</strong>
+          </button>
+          <button class="nav-item" data-status="reading">
+            <span>正在读</span>
+            <strong id="count-reading">0</strong>
+          </button>
+          <button class="nav-item" data-status="want">
+            <span>想读</span>
+            <strong id="count-want">0</strong>
+          </button>
+          <button class="nav-item" data-status="done">
+            <span>已读完</span>
+            <strong id="count-done">0</strong>
+          </button>
+        </nav>
+
+        <section class="shelf-card" aria-label="阅读概览">
+          <div class="mini-shelf" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <p>本月记录</p>
+          <strong id="month-count">0 本</strong>
+        </section>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">书山藏书</p>
+            <h2>登记、查找、备注你的每一本书</h2>
+          </div>
+          <button class="primary-button" id="open-form" type="button">添加书籍</button>
+        </header>
+
+        <section class="controls" aria-label="搜索与筛选">
+          <label class="search-field">
+            <span>搜索</span>
+            <input id="search-input" type="search" placeholder="书名、作者、ISBN、标签" />
+          </label>
+          <label class="select-field">
+            <span>排序</span>
+            <select id="sort-select">
+              <option value="updated">最近更新</option>
+              <option value="title">书名</option>
+              <option value="rating">评分</option>
+              <option value="year">出版年份</option>
+            </select>
+          </label>
+        </section>
+
+        <section class="stats-grid" aria-label="藏书统计">
+          <article>
+            <span>总藏书</span>
+            <strong id="stat-total">0</strong>
+          </article>
+          <article>
+            <span>已登记 ISBN</span>
+            <strong id="stat-isbn">0</strong>
+          </article>
+          <article>
+            <span>中文书</span>
+            <strong id="stat-zh">0</strong>
+          </article>
+          <article>
+            <span>英文书</span>
+            <strong id="stat-en">0</strong>
+          </article>
+        </section>
+
+        <section class="library-grid" id="book-grid" aria-live="polite"></section>
+      </main>
+    </div>
+
+    <dialog class="book-dialog" id="book-dialog">
+      <form id="book-form" method="dialog">
+        <div class="dialog-head">
+          <div>
+            <p class="eyebrow">书籍登记</p>
+            <h3 id="dialog-title">添加书籍</h3>
+          </div>
+          <button class="ghost-button icon-button" id="close-form" type="button" aria-label="关闭">×</button>
+        </div>
+
+        <input id="book-id" type="hidden" />
+        <section class="isbn-panel" aria-label="ISBN 查询">
+          <label>
+            <span>ISBN</span>
+            <input id="isbn" inputmode="numeric" maxlength="20" placeholder="扫描或输入 ISBN" />
+          </label>
+          <div class="isbn-actions">
+            <button class="ghost-button" id="scan-isbn" type="button">扫描</button>
+            <button class="ghost-button" id="lookup-isbn" type="button">查询</button>
+          </div>
+          <p id="lookup-status" class="form-hint" role="status"></p>
+        </section>
+        <div class="form-grid">
+          <label>
+            <span>书名</span>
+            <input id="title" required maxlength="80" />
+          </label>
+          <label>
+            <span>作者</span>
+            <input id="author" required maxlength="80" />
+          </label>
+          <label>
+            <span>出版社</span>
+            <input id="publisher" maxlength="60" />
+          </label>
+          <label>
+            <span>出版年份</span>
+            <input id="year" type="number" min="1000" max="2100" />
+          </label>
+          <label>
+            <span>语言</span>
+            <select id="language">
+              <option value="zh">中文</option>
+              <option value="en">English</option>
+              <option value="ja">日本語</option>
+              <option value="other">其他</option>
+            </select>
+          </label>
+          <label>
+            <span>分类</span>
+            <input id="genre" maxlength="24" placeholder="文学 / 历史 / 技术" />
+          </label>
+          <label>
+            <span>状态</span>
+            <select id="status">
+              <option value="reading">正在读</option>
+              <option value="want">想读</option>
+              <option value="done">已读完</option>
+            </select>
+          </label>
+          <label>
+            <span>形态</span>
+            <select id="format">
+              <option value="paper">纸质书</option>
+              <option value="ebook">电子书</option>
+              <option value="audio">有声书</option>
+            </select>
+          </label>
+          <label>
+            <span>评分</span>
+            <input id="rating" type="number" min="0" max="5" step="0.5" />
+          </label>
+          <label>
+            <span>标签</span>
+            <input id="tags" maxlength="48" placeholder="用逗号分隔" />
+          </label>
+        </div>
+
+        <label class="notes-field">
+          <span>简单备注</span>
+          <textarea id="notes" rows="4" maxlength="360" placeholder="版本、购入地点、借阅位置、摘录或一句读后感"></textarea>
+        </label>
+
+        <div class="dialog-actions">
+          <button class="danger-button" id="delete-book" type="button">删除</button>
+          <div>
+            <button class="ghost-button" id="cancel-form" type="button">取消</button>
+            <button class="primary-button" type="submit">保存</button>
+          </div>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="scanner-dialog" id="scanner-dialog">
+      <div class="scanner-head">
+        <div>
+          <p class="eyebrow">ISBN 扫描</p>
+          <h3>对准书背面的条码</h3>
+        </div>
+        <button class="ghost-button icon-button" id="close-scanner" type="button" aria-label="关闭扫描">×</button>
+      </div>
+      <div class="scanner-frame">
+        <video id="scanner-video" muted playsinline></video>
+        <div class="scan-line" aria-hidden="true"></div>
+      </div>
+      <p id="scanner-status" class="form-hint">正在准备摄像头…</p>
+    </dialog>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

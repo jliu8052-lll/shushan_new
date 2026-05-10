@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="书山">
+  <defs>
+    <linearGradient id="bg" x1="80" y1="32" x2="448" y2="488" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2f6f73"/>
+      <stop offset="0.58" stop-color="#4d8058"/>
+      <stop offset="1" stop-color="#b45d61"/>
+    </linearGradient>
+    <linearGradient id="page" x1="134" y1="128" x2="378" y2="390" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff8e8"/>
+      <stop offset="1" stop-color="#f1dfbd"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M111 386c40-96 87-169 145-220 58 51 105 124 145 220H111Z" fill="#f4d06f"/>
+  <path d="M148 361c31-68 67-119 108-152 41 33 77 84 108 152H148Z" fill="#1f2933" opacity=".18"/>
+  <path d="M134 128h244c15 0 28 13 28 28v215c0 15-13 28-28 28H134c-15 0-28-13-28-28V156c0-15 13-28 28-28Z" fill="url(#page)" opacity=".96"/>
+  <path d="M256 128v271" stroke="#d2b982" stroke-width="10"/>
+  <path d="M142 177h80M142 220h68M290 177h80M290 220h68" stroke="#8c6346" stroke-width="16" stroke-linecap="round"/>
+  <text x="256" y="326" text-anchor="middle" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="112" font-weight="800" fill="#2f6f73">山</text>
+</svg>
