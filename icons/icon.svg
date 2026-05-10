@@ -1,20 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="书山">
-  <defs>
-    <linearGradient id="bg" x1="80" y1="32" x2="448" y2="488" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#2f6f73"/>
-      <stop offset="0.58" stop-color="#4d8058"/>
-      <stop offset="1" stop-color="#b45d61"/>
-    </linearGradient>
-    <linearGradient id="page" x1="134" y1="128" x2="378" y2="390" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#fff8e8"/>
-      <stop offset="1" stop-color="#f1dfbd"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <path d="M111 386c40-96 87-169 145-220 58 51 105 124 145 220H111Z" fill="#f4d06f"/>
-  <path d="M148 361c31-68 67-119 108-152 41 33 77 84 108 152H148Z" fill="#1f2933" opacity=".18"/>
-  <path d="M134 128h244c15 0 28 13 28 28v215c0 15-13 28-28 28H134c-15 0-28-13-28-28V156c0-15 13-28 28-28Z" fill="url(#page)" opacity=".96"/>
-  <path d="M256 128v271" stroke="#d2b982" stroke-width="10"/>
-  <path d="M142 177h80M142 220h68M290 177h80M290 220h68" stroke="#8c6346" stroke-width="16" stroke-linecap="round"/>
-  <text x="256" y="326" text-anchor="middle" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="112" font-weight="800" fill="#2f6f73">山</text>
+  <rect width="512" height="512" rx="112" fill="#f8faf9"/>
+  <g fill="none" stroke="#0b1111" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M82 359 165 229c20-31 44-31 69 2l25 33c23 30 55 27 76-6l52-82c12-19 32-18 45 2l82 181c7 15-4 32-21 32H103c-18 0-31-18-21-32Z"/>
+    <path d="M242 261 292 188"/>
+    <path d="M300 184h-86c-12 0-22 10-22 22s10 22 22 22h98c12 0 22-10 22-22s-10-22-22-22"/>
+    <path d="M326 140H204c-12 0-22 10-22 22s10 22 22 22h122"/>
+    <path d="M345 96H225c-12 0-22 10-22 22s10 22 22 22h120c-12 0-21-10-21-22s9-22 21-22Z"/>
+  </g>
+  <g fill="none" stroke="#0b1111" stroke-width="11" stroke-linecap="round" opacity=".72">
+    <path d="M215 206h82"/>
+    <path d="M207 162h95"/>
+    <path d="M228 118h86"/>
+  </g>
 </svg>
