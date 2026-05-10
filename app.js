@@ -199,7 +199,6 @@ function getVisibleBooks() {
     })
     .sort((a, b) => {
       if (sortSelect.value === "title") return a.title.localeCompare(b.title, "zh-CN");
-      if (sortSelect.value === "rating") return (b.rating || 0) - (a.rating || 0);
       if (sortSelect.value === "year") return (b.year || 0) - (a.year || 0);
       return (b.updatedAt || 0) - (a.updatedAt || 0);
     });

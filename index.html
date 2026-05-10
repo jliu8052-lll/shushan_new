@@ -68,7 +68,6 @@
             <select id="sort-select">
               <option value="updated">最近更新</option>
               <option value="title">书名</option>
-              <option value="rating">评分</option>
               <option value="year">出版年份</option>
             </select>
           </label>
@@ -113,19 +112,21 @@
             <span>出版社</span>
             <input id="publisher" maxlength="60" />
           </label>
-          <label class="compact">
-            <span>出版年份</span>
-            <input id="year" type="number" min="1000" max="2100" />
-          </label>
-          <label class="compact">
-            <span>语言</span>
-            <select id="language">
-              <option value="zh">中文</option>
-              <option value="en">English</option>
-              <option value="ja">日本語</option>
-              <option value="other">其他</option>
-            </select>
-          </label>
+          <div class="field-row">
+            <label>
+              <span>出版年份</span>
+              <input id="year" type="number" min="1000" max="2100" />
+            </label>
+            <label>
+              <span>语言</span>
+              <select id="language">
+                <option value="zh">中文</option>
+                <option value="en">English</option>
+                <option value="ja">日本語</option>
+                <option value="other">其他</option>
+              </select>
+            </label>
+          </div>
           <label>
             <span>分类</span>
             <input id="genre" maxlength="24" placeholder="文学 / 历史 / 技术" />
