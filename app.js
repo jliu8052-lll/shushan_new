@@ -384,9 +384,10 @@ async function fetchBookByIsbn(isbn) {
   if (isbnOverrides[isbn]) return isbnOverrides[isbn];
 
   const results = await Promise.allSettled([
-    fetchGoogleBook(isbn, "zh"),
     fetchGoogleBook(isbn),
+    fetchGoogleBook(isbn, "zh"),
     fetchOpenLibraryBook(isbn),
+    fetchOpenLibrarySearchBook(isbn),
   ]);
   const candidates = results
     .filter((result) => result.status === "fulfilled" && result.value)
@@ -446,6 +447,24 @@ async function fetchOpenLibraryBook(isbn) {
     year: getYear(data.publish_date),
     language: guessLanguage(data.title || ""),
     genre: (data.subjects || [])[0] || "",
+    isbn,
+  };
+}
+
+async function fetchOpenLibrarySearchBook(isbn) {
+  const response = await fetch(`https://openlibrary.org/search.json?isbn=${encodeURIComponent(isbn)}`);
+  if (!response.ok) return null;
+  const data = await response.json();
+  const doc = data.docs?.[0];
+  if (!doc) return null;
+  return {
+    title: doc.title || "",
+    author: (doc.author_name || []).join(", "),
+    publisher: (doc.publisher || [])[0] || "",
+    coverUrl: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : "",
+    year: doc.first_publish_year || "",
+    language: guessLanguage([doc.title, ...(doc.author_name || []), ...doc.publisher || []].join(" ")),
+    genre: (doc.subject || [])[0] || "",
     isbn,
   };
 }
