@@ -1,5 +1,6 @@
 const STORAGE_KEY = "shushan-library-books";
 const LEGACY_STORAGE_KEY = "personal-library-books";
+const VIEW_KEY = "shushan-library-view";
 
 const seedBooks = [
   {
@@ -82,6 +83,7 @@ const coverColors = [
 
 let books = loadBooks();
 let activeStatus = "all";
+let viewMode = localStorage.getItem(VIEW_KEY) || "card";
 
 const grid = document.querySelector("#book-grid");
 const dialog = document.querySelector("#book-dialog");
@@ -109,6 +111,16 @@ sortSelect.addEventListener("change", render);
 lookupButton.addEventListener("click", lookupCurrentIsbn);
 scanButton.addEventListener("click", startScanner);
 
+document.querySelectorAll(".view-button").forEach((button) => {
+  button.addEventListener("click", () => {
+    viewMode = button.dataset.view;
+    localStorage.setItem(VIEW_KEY, viewMode);
+    document.querySelectorAll(".view-button").forEach((item) => item.classList.remove("active"));
+    button.classList.add("active");
+    render();
+  });
+});
+
 document.querySelectorAll(".nav-item").forEach((button) => {
   button.addEventListener("click", () => {
     activeStatus = button.dataset.status;
@@ -131,7 +143,7 @@ form.addEventListener("submit", (event) => {
     year: Number(valueOf("#year")) || "",
     language: valueOf("#language"),
     genre: valueOf("#genre"),
-    status: existing?.status || "reading",
+    status: valueOf("#status"),
     format: existing?.format || "paper",
     rating: existing?.rating || 0,
     tags: valueOf("#tags")
@@ -206,6 +218,10 @@ function getVisibleBooks() {
 
 function render() {
   renderStats();
+  grid.classList.toggle("list-view", viewMode === "list");
+  document.querySelectorAll(".view-button").forEach((button) => {
+    button.classList.toggle("active", button.dataset.view === viewMode);
+  });
   const visibleBooks = getVisibleBooks();
   grid.innerHTML = "";
 
@@ -287,6 +303,7 @@ function openEditor(book) {
   setValue("#year", book?.year || "");
   setValue("#language", book?.language || "zh");
   setValue("#genre", book?.genre || "");
+  setValue("#status", book?.status || "reading");
   setValue("#tags", (book?.tags || []).join("，"));
   setValue("#notes", book?.notes || "");
 

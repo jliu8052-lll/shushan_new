@@ -247,6 +247,7 @@ h2 {
 .search-field,
 .select-field,
 .form-grid label,
+.field-row label,
 .notes-field,
 .isbn-panel label {
   display: grid;
@@ -255,6 +256,32 @@ h2 {
 
 .search-field {
   flex: 1;
+}
+
+.view-toggle {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(56px, 1fr));
+  gap: 3px;
+  align-self: end;
+  min-height: 44px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.view-button {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.view-button.active {
+  color: #fff;
+  background: var(--accent);
 }
 
 input,
@@ -293,6 +320,11 @@ textarea:focus {
   margin-top: 20px;
 }
 
+.library-grid.list-view {
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
 .book-card {
   display: grid;
   grid-template-columns: 76px minmax(0, 1fr);
@@ -303,6 +335,12 @@ textarea:focus {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 8px 28px rgba(35, 45, 55, 0.06);
+}
+
+.list-view .book-card {
+  grid-template-columns: 44px minmax(0, 1fr);
+  min-height: auto;
+  padding: 10px;
 }
 
 .book-card:hover {
@@ -317,6 +355,11 @@ textarea:focus {
   color: #fff;
   overflow: hidden;
   box-shadow: inset 8px 0 0 rgba(255, 255, 255, 0.16), 0 12px 18px rgba(31, 41, 51, 0.16);
+}
+
+.list-view .cover {
+  min-height: 68px;
+  border-radius: 4px 7px 7px 4px;
 }
 
 .cover::before,
@@ -357,6 +400,20 @@ textarea:focus {
   line-height: 1.2;
 }
 
+.list-view .cover span {
+  right: 7px;
+  bottom: 12px;
+  max-width: 30px;
+  font-size: 11px;
+}
+
+.list-view .cover span.latin {
+  left: 7px;
+  right: 6px;
+  bottom: 16px;
+  font-size: 9px;
+}
+
 .book-info {
   min-width: 0;
 }
@@ -365,6 +422,16 @@ textarea:focus {
   margin-bottom: 7px;
   font-size: 18px;
   line-height: 1.25;
+}
+
+.list-view .book-info h3 {
+  margin-bottom: 4px;
+  font-size: 16px;
+}
+
+.list-view .book-info p {
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .book-info p {
@@ -378,6 +445,12 @@ textarea:focus {
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 10px;
+}
+
+.list-view .meta-row,
+.list-view .tag-row {
+  gap: 4px;
+  margin-top: 6px;
 }
 
 .pill {
@@ -401,6 +474,10 @@ textarea:focus {
   display: flex;
   gap: 8px;
   margin-top: 14px;
+}
+
+.list-view .card-actions {
+  margin-top: 8px;
 }
 
 .small-button {
@@ -487,8 +564,10 @@ textarea:focus {
   margin: 12px 0 10px;
 }
 
-.form-grid label {
+.form-grid > label {
   grid-column: span 2;
+  grid-template-columns: 74px minmax(0, 1fr);
+  align-items: center;
 }
 
 .form-grid .span-2 {
@@ -500,6 +579,11 @@ textarea:focus {
   grid-column: span 2;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
+}
+
+.field-row label {
+  grid-template-columns: 74px minmax(0, 1fr);
+  align-items: center;
 }
 
 .form-grid label,
@@ -598,6 +682,10 @@ textarea {
     align-items: stretch;
   }
 
+  .view-toggle {
+    align-self: stretch;
+  }
+
 }
 
 @media (max-width: 560px) {
@@ -626,13 +714,30 @@ textarea {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .form-grid label,
+  .form-grid > label,
   .field-row,
   .form-grid .span-2 {
     grid-column: span 2;
   }
 
+  .form-grid > label {
+    grid-template-columns: 70px minmax(0, 1fr);
+  }
+
+  .field-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .field-row label {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
   .book-card {
     grid-template-columns: 68px minmax(0, 1fr);
+  }
+
+  .list-view .book-card {
+    grid-template-columns: 42px minmax(0, 1fr);
   }
 }

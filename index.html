@@ -71,6 +71,10 @@
               <option value="year">出版年份</option>
             </select>
           </label>
+          <div class="view-toggle" aria-label="显示方式">
+            <button class="view-button active" type="button" data-view="card">卡片</button>
+            <button class="view-button" type="button" data-view="list">列表</button>
+          </div>
         </section>
 
         <section class="library-grid" id="book-grid" aria-live="polite"></section>
@@ -130,6 +134,14 @@
           <label>
             <span>分类</span>
             <input id="genre" maxlength="24" placeholder="文学 / 历史 / 技术" />
+          </label>
+          <label>
+            <span>状态</span>
+            <select id="status">
+              <option value="reading">正在读</option>
+              <option value="want">想读</option>
+              <option value="done">已读完</option>
+            </select>
           </label>
           <label>
             <span>标签</span>
