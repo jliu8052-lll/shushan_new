@@ -379,44 +379,15 @@ async function lookupCurrentIsbn(forcedIsbn) {
 async function fetchBookByIsbn(isbn) {
   if (isbnOverrides[isbn]) return isbnOverrides[isbn];
 
-  const results = await Promise.allSettled([
-    fetchGoogleBook(isbn),
-    fetchGoogleBookByKeyword(isbn),
-    fetchGoogleBook(isbn, "zh"),
-    fetchOpenLibraryBookJsonp(isbn),
-    fetchOpenLibraryBook(isbn),
-    fetchOpenLibrarySearchBook(isbn),
-  ]);
-  const candidates = results
-    .filter((result) => result.status === "fulfilled" && result.value)
-    .map((result) => result.value);
-  if (!candidates.length) return null;
-
-  const scored = candidates
-    .map((candidate) => ({ candidate, score: scoreBookInfo(candidate, isbn) }))
-    .sort((a, b) => b.score - a.score);
-  const best = scored[0].candidate;
-  if (isLikelyChineseIsbn(isbn) && !hasCjkBookInfo(best)) {
-    return {
-      isbn,
-      title: "",
-      author: "",
-      publisher: "",
-      year: best.year || "",
-      language: "zh",
-      genre: "",
-      coverUrl: best.coverUrl || "",
-      partial: true,
-    };
-  }
-  return best;
+  const googleResult = await fetchGoogleBook(isbn);
+  if (googleResult) return googleResult;
+  return fetchOpenLibraryBook(isbn);
 }
 
-async function fetchGoogleBook(isbn, language) {
-  const langParam = language ? `&langRestrict=${encodeURIComponent(language)}` : "";
-  const data = await fetchJsonWithProxyFallback(
-    `https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(isbn)}${langParam}`,
-  );
+async function fetchGoogleBook(isbn) {
+  const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(isbn)}`);
+  if (!response.ok) return null;
+  const data = await response.json();
   const info = data.items?.[0]?.volumeInfo;
   if (!info) return null;
 
@@ -432,29 +403,10 @@ async function fetchGoogleBook(isbn, language) {
   };
 }
 
-async function fetchGoogleBookByKeyword(isbn) {
-  const data = await fetchJsonWithProxyFallback(
-    `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(isbn)}`,
-  );
-  const item = (data.items || []).find((entry) =>
-    (entry.volumeInfo?.industryIdentifiers || []).some((identifier) => normalizeIsbn(identifier.identifier) === isbn),
-  ) || data.items?.[0];
-  const info = item?.volumeInfo;
-  if (!info) return null;
-  return {
-    title: info.title || "",
-    author: (info.authors || []).join(", "),
-    publisher: info.publisher || "",
-    coverUrl: getGoogleCover(info),
-    year: getYear(info.publishedDate),
-    language: normalizeLanguage(info.language || ""),
-    genre: info.categories?.[0] || "",
-    isbn,
-  };
-}
-
 async function fetchOpenLibraryBook(isbn) {
-  const data = await fetchJsonWithProxyFallback(`https://openlibrary.org/isbn/${encodeURIComponent(isbn)}.json`);
+  const response = await fetch(`https://openlibrary.org/isbn/${encodeURIComponent(isbn)}.json`);
+  if (!response.ok) return null;
+  const data = await response.json();
   const author = await fetchOpenLibraryAuthors(data.authors || []);
   return {
     title: data.title || "",
@@ -464,59 +416,6 @@ async function fetchOpenLibraryBook(isbn) {
     year: getYear(data.publish_date),
     language: guessLanguage(data.title || ""),
     genre: (data.subjects || [])[0] || "",
-    isbn,
-  };
-}
-
-function fetchOpenLibraryBookJsonp(isbn) {
-  return new Promise((resolve) => {
-    const callbackName = `openLibraryCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    const script = document.createElement("script");
-    const timeout = window.setTimeout(() => cleanup(null), 8000);
-
-    window[callbackName] = (data) => {
-      const book = data?.[`ISBN:${isbn}`];
-      cleanup(book ? normalizeOpenLibraryBooksApiResult(book, isbn) : null);
-    };
-
-    script.onerror = () => cleanup(null);
-    script.src = `https://openlibrary.org/api/books?bibkeys=ISBN:${encodeURIComponent(isbn)}&jscmd=data&format=javascript&callback=${callbackName}`;
-    document.head.append(script);
-
-    function cleanup(result) {
-      window.clearTimeout(timeout);
-      delete window[callbackName];
-      script.remove();
-      resolve(result);
-    }
-  });
-}
-
-function normalizeOpenLibraryBooksApiResult(book, isbn) {
-  return {
-    title: book.title || "",
-    author: (book.authors || []).map((author) => author.name).filter(Boolean).join(", "),
-    publisher: (book.publishers || []).map((publisher) => publisher.name).filter(Boolean).join(", "),
-    coverUrl: book.cover?.medium || book.cover?.small || "",
-    year: getYear(book.publish_date),
-    language: guessLanguage([book.title, ...(book.authors || []).map((author) => author.name), ...(book.publishers || []).map((publisher) => publisher.name)].join(" ")),
-    genre: (book.subjects || [])[0]?.name || "",
-    isbn,
-  };
-}
-
-async function fetchOpenLibrarySearchBook(isbn) {
-  const data = await fetchJsonWithProxyFallback(`https://openlibrary.org/search.json?isbn=${encodeURIComponent(isbn)}`);
-  const doc = data.docs?.[0];
-  if (!doc) return null;
-  return {
-    title: doc.title || "",
-    author: (doc.author_name || []).join(", "),
-    publisher: (doc.publisher || [])[0] || "",
-    coverUrl: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : "",
-    year: doc.first_publish_year || "",
-    language: guessLanguage([doc.title, ...(doc.author_name || []), ...doc.publisher || []].join(" ")),
-    genre: (doc.subject || [])[0] || "",
     isbn,
   };
 }
@@ -548,43 +447,9 @@ function applyBookInfo(bookInfo) {
   setValue("#cover-url", bookInfo.coverUrl || valueOf("#cover-url"));
 }
 
-function scoreBookInfo(bookInfo, isbn) {
-  let score = 0;
-  if (bookInfo.title) score += 4;
-  if (bookInfo.author) score += 2;
-  if (bookInfo.publisher) score += 2;
-  if (bookInfo.year) score += 1;
-  if (bookInfo.coverUrl) score += 1;
-  if (hasCjkBookInfo(bookInfo)) score += isLikelyChineseIsbn(isbn) ? 20 : 4;
-  if (isLikelyChineseIsbn(isbn) && !hasCjkBookInfo(bookInfo)) score -= 20;
-  return score;
-}
-
-function hasCjkBookInfo(bookInfo) {
-  return /[\u4e00-\u9fff]/.test([bookInfo.title, bookInfo.author, bookInfo.publisher, bookInfo.genre].join(" "));
-}
-
-function isLikelyChineseIsbn(isbn) {
-  return /^97[89]7/.test(normalizeIsbn(isbn));
-}
-
 function getGoogleCover(info) {
   const links = info.imageLinks || {};
   return links.thumbnail || links.smallThumbnail || "";
-}
-
-async function fetchJsonWithProxyFallback(url) {
-  try {
-    return await fetchJson(url);
-  } catch {
-    return fetchJson(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
-  }
-}
-
-async function fetchJson(url) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Request failed");
-  return response.json();
 }
 
 function exportBooks() {
