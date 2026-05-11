@@ -372,6 +372,15 @@ textarea:focus {
   font-weight: 700;
 }
 
+.status-pill {
+  border: 0;
+  cursor: pointer;
+}
+
+.status-pill:hover {
+  background: #dfeaea;
+}
+
 .tag {
   color: var(--muted);
   background: #f0ede6;
@@ -380,7 +389,7 @@ textarea:focus {
 .card-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 8px;
   margin-top: 8px;
 }

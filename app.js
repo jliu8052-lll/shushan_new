@@ -233,14 +233,14 @@ function render() {
         <h3>${escapeHtml(book.title)}</h3>
         <p>${escapeHtml(book.author)}${book.publisher ? ` · ${escapeHtml(book.publisher)}` : ""}${book.year ? ` · ${book.year}` : ""}</p>
         <div class="meta-row">
-          <span class="pill">${languageText[book.language] || languageText.other}</span>
           ${book.isbn ? `<span class="pill tag">ISBN ${escapeHtml(book.isbn)}</span>` : ""}
+          <span class="pill">${languageText[book.language] || languageText.other}</span>
+          <button class="pill status-pill" type="button" data-next="${book.id}">${statusText[book.status]}</button>
         </div>
         <div class="tag-row">
           ${(book.tags || []).map((tag) => `<span class="pill tag">${escapeHtml(tag)}</span>`).join("")}
         </div>
         <div class="card-actions">
-          <span class="pill">${statusText[book.status]}</span>
           <button class="small-button" type="button" data-edit="${book.id}">编辑</button>
         </div>
       </div>
@@ -252,6 +252,9 @@ function render() {
     button.addEventListener("click", () => openEditor(books.find((book) => book.id === button.dataset.edit)));
   });
 
+  grid.querySelectorAll("[data-next]").forEach((button) => {
+    button.addEventListener("click", () => cycleStatus(button.dataset.next));
+  });
 }
 
 function renderStats() {
@@ -299,6 +302,17 @@ function setValue(selector, value) {
 function closeEditor() {
   stopScanner();
   dialog.close();
+}
+
+function cycleStatus(id) {
+  const order = ["reading", "want", "done"];
+  books = books.map((book) => {
+    if (book.id !== id) return book;
+    const nextStatus = order[(order.indexOf(book.status) + 1) % order.length];
+    return { ...book, status: nextStatus, updatedAt: Date.now() };
+  });
+  saveBooks();
+  render();
 }
 
 function escapeHtml(value) {
