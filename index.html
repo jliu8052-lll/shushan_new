@@ -71,9 +71,10 @@
               <option value="year">出版年份</option>
             </select>
           </label>
-          <div class="view-toggle" aria-label="显示方式">
-            <button class="view-button active" type="button" data-view="card">卡片</button>
-            <button class="view-button" type="button" data-view="list">列表</button>
+          <div class="backup-actions" aria-label="数据备份">
+            <button class="ghost-button" id="export-books" type="button">导出</button>
+            <button class="ghost-button" id="import-books" type="button">导入</button>
+            <input id="import-file" type="file" accept="application/json,.json" hidden />
           </div>
         </section>
 
@@ -92,6 +93,7 @@
         </div>
 
         <input id="book-id" type="hidden" />
+        <input id="cover-url" type="hidden" />
         <section class="isbn-panel" aria-label="ISBN 查询">
           <label class="isbn-field">
             <span>ISBN</span>

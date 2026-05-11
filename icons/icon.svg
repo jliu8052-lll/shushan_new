@@ -1,15 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="书山">
-  <rect width="512" height="512" rx="112" fill="#f8faf9"/>
-  <g fill="none" stroke="#0b1111" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M82 359 165 229c20-31 44-31 69 2l25 33c23 30 55 27 76-6l52-82c12-19 32-18 45 2l82 181c7 15-4 32-21 32H103c-18 0-31-18-21-32Z"/>
-    <path d="M242 261 292 188"/>
-    <path d="M300 184h-86c-12 0-22 10-22 22s10 22 22 22h98c12 0 22-10 22-22s-10-22-22-22"/>
-    <path d="M326 140H204c-12 0-22 10-22 22s10 22 22 22h122"/>
-    <path d="M345 96H225c-12 0-22 10-22 22s10 22 22 22h120c-12 0-21-10-21-22s9-22 21-22Z"/>
-  </g>
-  <g fill="none" stroke="#0b1111" stroke-width="11" stroke-linecap="round" opacity=".72">
-    <path d="M215 206h82"/>
-    <path d="M207 162h95"/>
-    <path d="M228 118h86"/>
-  </g>
+  <defs>
+    <linearGradient id="bg" x1="80" y1="32" x2="448" y2="488" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2f6f73"/>
+      <stop offset="0.58" stop-color="#6c7073"/>
+      <stop offset="1" stop-color="#b45d61"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M123 112h270c24 0 43 19 43 43v202c0 24-19 43-43 43H123c-24 0-43-19-43-43V155c0-24 19-43 43-43Z" fill="rgba(255,255,255,.12)"/>
+  <path d="M151 332h43V206h-43v126Zm83 0h43V155h-43v177Zm83 0h43V236h-43v96Z" fill="#fff"/>
+  <path d="M80 155c0-24 19-43 43-43h41v288h-41c-24 0-43-19-43-43V155Z" fill="rgba(255,255,255,.14)"/>
 </svg>

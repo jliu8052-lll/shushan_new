@@ -258,30 +258,16 @@ h2 {
   flex: 1;
 }
 
-.view-toggle {
-  display: inline-grid;
-  grid-template-columns: repeat(2, minmax(56px, 1fr));
-  gap: 3px;
+.backup-actions {
+  display: flex;
   align-self: end;
-  min-height: 44px;
-  padding: 3px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
+  gap: 8px;
 }
 
-.view-button {
-  min-height: 36px;
-  padding: 0 10px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--muted);
-}
-
-.view-button.active {
-  color: #fff;
-  background: var(--accent);
+.backup-actions .ghost-button {
+  align-self: end;
+  min-width: 58px;
+  padding: 0 12px;
 }
 
 input,
@@ -315,32 +301,25 @@ textarea:focus {
 
 .library-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 18px;
-  margin-top: 20px;
-}
-
-.library-grid.list-view {
   grid-template-columns: 1fr;
   gap: 10px;
+  margin-top: 20px;
 }
 
 .book-card {
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr);
-  gap: 14px;
-  min-height: 176px;
-  padding: 14px;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 12px;
+  min-height: auto;
+  padding: 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 8px 28px rgba(35, 45, 55, 0.06);
 }
 
-.list-view .book-card {
-  grid-template-columns: 44px minmax(0, 1fr);
-  min-height: auto;
-  padding: 10px;
+.book-card.no-cover {
+  grid-template-columns: 1fr;
 }
 
 .book-card:hover {
@@ -348,70 +327,13 @@ textarea:focus {
   box-shadow: var(--shadow);
 }
 
-.cover {
-  position: relative;
-  min-height: 138px;
-  border-radius: 4px 10px 10px 4px;
-  color: #fff;
-  overflow: hidden;
-  box-shadow: inset 8px 0 0 rgba(255, 255, 255, 0.16), 0 12px 18px rgba(31, 41, 51, 0.16);
-}
-
-.list-view .cover {
-  min-height: 68px;
-  border-radius: 4px 7px 7px 4px;
-}
-
-.cover::before,
-.cover::after {
-  content: "";
-  position: absolute;
-  left: 14px;
-  right: 12px;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.45);
-}
-
-.cover::before {
-  top: 28px;
-}
-
-.cover::after {
-  bottom: 24px;
-}
-
-.cover span {
-  position: absolute;
-  right: 11px;
-  bottom: 34px;
-  max-width: 52px;
-  writing-mode: vertical-rl;
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.cover span.latin {
-  left: 14px;
-  right: 10px;
-  bottom: 34px;
-  max-width: none;
-  writing-mode: horizontal-tb;
-  font-size: 13px;
-  line-height: 1.2;
-}
-
-.list-view .cover span {
-  right: 7px;
-  bottom: 12px;
-  max-width: 30px;
-  font-size: 11px;
-}
-
-.list-view .cover span.latin {
-  left: 7px;
-  right: 6px;
-  bottom: 16px;
-  font-size: 9px;
+.cover-image {
+  width: 52px;
+  height: 76px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #eef1f2;
+  box-shadow: 0 6px 14px rgba(31, 41, 51, 0.16);
 }
 
 .book-info {
@@ -419,36 +341,21 @@ textarea:focus {
 }
 
 .book-info h3 {
-  margin-bottom: 7px;
-  font-size: 18px;
-  line-height: 1.25;
-}
-
-.list-view .book-info h3 {
   margin-bottom: 4px;
   font-size: 16px;
-}
-
-.list-view .book-info p {
-  font-size: 13px;
-  line-height: 1.35;
+  line-height: 1.25;
 }
 
 .book-info p {
   color: var(--muted);
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .meta-row,
 .tag-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.list-view .meta-row,
-.list-view .tag-row {
   gap: 4px;
   margin-top: 6px;
 }
@@ -473,10 +380,6 @@ textarea:focus {
 .card-actions {
   display: flex;
   gap: 8px;
-  margin-top: 14px;
-}
-
-.list-view .card-actions {
   margin-top: 8px;
 }
 
@@ -682,7 +585,7 @@ textarea {
     align-items: stretch;
   }
 
-  .view-toggle {
+  .backup-actions {
     align-self: stretch;
   }
 
@@ -734,10 +637,15 @@ textarea {
   }
 
   .book-card {
-    grid-template-columns: 68px minmax(0, 1fr);
+    grid-template-columns: 46px minmax(0, 1fr);
   }
 
-  .list-view .book-card {
-    grid-template-columns: 42px minmax(0, 1fr);
+  .book-card.no-cover {
+    grid-template-columns: 1fr;
+  }
+
+  .cover-image {
+    width: 46px;
+    height: 68px;
   }
 }

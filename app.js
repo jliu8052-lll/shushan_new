@@ -1,6 +1,5 @@
 const STORAGE_KEY = "shushan-library-books";
 const LEGACY_STORAGE_KEY = "personal-library-books";
-const VIEW_KEY = "shushan-library-view";
 
 const seedBooks = [
   {
@@ -8,6 +7,7 @@ const seedBooks = [
     title: "置身事内",
     author: "兰小欢",
     isbn: "9787208171336",
+    coverUrl: "",
     publisher: "上海人民出版社",
     year: 2021,
     language: "zh",
@@ -24,6 +24,7 @@ const seedBooks = [
     title: "献给阿尔吉侬的花束",
     author: "Daniel Keyes",
     isbn: "9780156030304",
+    coverUrl: "https://covers.openlibrary.org/isbn/9780156030304-M.jpg",
     publisher: "Mariner Books",
     year: 1959,
     language: "en",
@@ -40,6 +41,7 @@ const seedBooks = [
     title: "设计心理学",
     author: "唐纳德·诺曼",
     isbn: "9787508648330",
+    coverUrl: "",
     publisher: "中信出版社",
     year: 2015,
     language: "zh",
@@ -73,17 +75,8 @@ const languageText = {
   other: "其他",
 };
 
-const coverColors = [
-  ["#2f6f73", "#4f6f9f"],
-  ["#b45d61", "#c89138"],
-  ["#4d8058", "#2f6f73"],
-  ["#4f6f9f", "#7b5d9a"],
-  ["#8c6346", "#b45d61"],
-];
-
 let books = loadBooks();
 let activeStatus = "all";
-let viewMode = localStorage.getItem(VIEW_KEY) || "card";
 
 const grid = document.querySelector("#book-grid");
 const dialog = document.querySelector("#book-dialog");
@@ -94,6 +87,9 @@ const deleteButton = document.querySelector("#delete-book");
 const lookupButton = document.querySelector("#lookup-isbn");
 const scanButton = document.querySelector("#scan-isbn");
 const lookupStatus = document.querySelector("#lookup-status");
+const exportButton = document.querySelector("#export-books");
+const importButton = document.querySelector("#import-books");
+const importFile = document.querySelector("#import-file");
 const scannerDialog = document.querySelector("#scanner-dialog");
 const scannerVideo = document.querySelector("#scanner-video");
 const scannerStatus = document.querySelector("#scanner-status");
@@ -110,16 +106,9 @@ searchInput.addEventListener("input", render);
 sortSelect.addEventListener("change", render);
 lookupButton.addEventListener("click", lookupCurrentIsbn);
 scanButton.addEventListener("click", startScanner);
-
-document.querySelectorAll(".view-button").forEach((button) => {
-  button.addEventListener("click", () => {
-    viewMode = button.dataset.view;
-    localStorage.setItem(VIEW_KEY, viewMode);
-    document.querySelectorAll(".view-button").forEach((item) => item.classList.remove("active"));
-    button.classList.add("active");
-    render();
-  });
-});
+exportButton.addEventListener("click", exportBooks);
+importButton.addEventListener("click", () => importFile.click());
+importFile.addEventListener("change", importBooks);
 
 document.querySelectorAll(".nav-item").forEach((button) => {
   button.addEventListener("click", () => {
@@ -140,6 +129,7 @@ form.addEventListener("submit", (event) => {
     title: valueOf("#title"),
     author: valueOf("#author"),
     publisher: valueOf("#publisher"),
+    coverUrl: valueOf("#cover-url") || existing?.coverUrl || "",
     year: Number(valueOf("#year")) || "",
     language: valueOf("#language"),
     genre: valueOf("#genre"),
@@ -184,6 +174,9 @@ function normalizeBook(book) {
   return {
     isbn: "",
     publisher: "",
+    title: "",
+    author: "",
+    coverUrl: "",
     language: guessLanguage(book.title || ""),
     ...book,
     tags: Array.isArray(book.tags) ? book.tags : [],
@@ -218,10 +211,6 @@ function getVisibleBooks() {
 
 function render() {
   renderStats();
-  grid.classList.toggle("list-view", viewMode === "list");
-  document.querySelectorAll(".view-button").forEach((button) => {
-    button.classList.toggle("active", button.dataset.view === viewMode);
-  });
   const visibleBooks = getVisibleBooks();
   grid.innerHTML = "";
 
@@ -235,21 +224,17 @@ function render() {
     return;
   }
 
-  visibleBooks.forEach((book, index) => {
+  visibleBooks.forEach((book) => {
     const card = document.createElement("article");
-    card.className = "book-card";
+    card.className = `book-card ${book.coverUrl ? "" : "no-cover"}`;
     card.innerHTML = `
-      <div class="cover" style="background: linear-gradient(150deg, ${coverColors[index % coverColors.length][0]}, ${coverColors[index % coverColors.length][1]});">
-        <span class="${book.language === "en" ? "latin" : ""}">${escapeHtml(book.title.slice(0, 16))}</span>
-      </div>
+      ${book.coverUrl ? `<img class="cover-image" src="${escapeHtml(book.coverUrl)}" alt="${escapeHtml(book.title)}封面" loading="lazy" />` : ""}
       <div class="book-info">
         <h3>${escapeHtml(book.title)}</h3>
         <p>${escapeHtml(book.author)}${book.publisher ? ` · ${escapeHtml(book.publisher)}` : ""}${book.year ? ` · ${book.year}` : ""}</p>
         <div class="meta-row">
           <span class="pill">${statusText[book.status]}</span>
           <span class="pill">${languageText[book.language] || languageText.other}</span>
-          <span class="pill">${formatText[book.format]}</span>
-          ${book.rating ? `<span class="pill">${book.rating.toFixed(1)} 分</span>` : ""}
         </div>
         <div class="tag-row">
           ${book.isbn ? `<span class="pill tag">ISBN ${escapeHtml(book.isbn)}</span>` : ""}
@@ -296,6 +281,7 @@ function openEditor(book) {
   deleteButton.style.visibility = book ? "visible" : "hidden";
 
   setValue("#book-id", book?.id || "");
+  setValue("#cover-url", book?.coverUrl || "");
   setValue("#isbn", book?.isbn || "");
   setValue("#title", book?.title || "");
   setValue("#author", book?.author || "");
@@ -382,6 +368,7 @@ async function fetchGoogleBook(isbn) {
     title: info.title || "",
     author: (info.authors || []).join(", "),
     publisher: info.publisher || "",
+    coverUrl: getGoogleCover(info),
     year: getYear(info.publishedDate),
     language: normalizeLanguage(info.language || ""),
     genre: info.categories?.[0] || "",
@@ -398,6 +385,7 @@ async function fetchOpenLibraryBook(isbn) {
     title: data.title || "",
     author,
     publisher: (data.publishers || []).join(", "),
+    coverUrl: `https://covers.openlibrary.org/isbn/${encodeURIComponent(isbn)}-M.jpg?default=false`,
     year: getYear(data.publish_date),
     language: guessLanguage(data.title || ""),
     genre: (data.subjects || [])[0] || "",
@@ -429,6 +417,48 @@ function applyBookInfo(bookInfo) {
   setValue("#year", bookInfo.year || valueOf("#year"));
   setValue("#language", bookInfo.language || guessLanguage(bookInfo.title || valueOf("#title")));
   setValue("#genre", bookInfo.genre || valueOf("#genre"));
+  setValue("#cover-url", bookInfo.coverUrl || valueOf("#cover-url"));
+}
+
+function getGoogleCover(info) {
+  const links = info.imageLinks || {};
+  return links.thumbnail || links.smallThumbnail || "";
+}
+
+function exportBooks() {
+  const payload = {
+    app: "书山",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    books,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `shushan-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+async function importBooks(event) {
+  const file = event.target.files?.[0];
+  event.target.value = "";
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    const importedBooks = Array.isArray(data) ? data : data.books;
+    if (!Array.isArray(importedBooks)) throw new Error("Invalid backup");
+    books = importedBooks.map(normalizeBook).filter((book) => book.title || book.isbn);
+    saveBooks();
+    activeStatus = "all";
+    document.querySelectorAll(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.status === "all"));
+    render();
+  } catch {
+    window.alert("导入失败：请选择书山导出的 JSON 备份文件。");
+  }
 }
 
 async function startScanner() {
