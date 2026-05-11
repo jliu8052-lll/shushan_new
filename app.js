@@ -124,7 +124,7 @@ searchInput.addEventListener("input", render);
 sortSelect.addEventListener("change", render);
 lookupButton.addEventListener("click", lookupCurrentIsbn);
 scanButton.addEventListener("click", startScanner);
-backupMenuButton.addEventListener("click", () => backupDialog.showModal());
+backupMenuButton.addEventListener("click", openBackup);
 exportButton.addEventListener("click", exportBooks);
 exportMarkdownButton.addEventListener("click", exportMarkdown);
 importButton.addEventListener("click", () => importFile.click());
@@ -362,7 +362,7 @@ async function lookupCurrentIsbn(forcedIsbn) {
   try {
     const bookInfo = await fetchBookByIsbn(isbn);
     if (!bookInfo) {
-      lookupStatus.textContent = "暂时没有查到，可以手动补充。";
+      lookupStatus.textContent = "数据源没有返回这本书，可以手动补充。";
       return;
     }
     applyBookInfo(bookInfo);
@@ -381,6 +381,7 @@ async function fetchBookByIsbn(isbn) {
 
   const results = await Promise.allSettled([
     fetchGoogleBook(isbn),
+    fetchGoogleBookByKeyword(isbn),
     fetchGoogleBook(isbn, "zh"),
     fetchOpenLibraryBookJsonp(isbn),
     fetchOpenLibraryBook(isbn),
@@ -419,6 +420,27 @@ async function fetchGoogleBook(isbn, language) {
   const info = data.items?.[0]?.volumeInfo;
   if (!info) return null;
 
+  return {
+    title: info.title || "",
+    author: (info.authors || []).join(", "),
+    publisher: info.publisher || "",
+    coverUrl: getGoogleCover(info),
+    year: getYear(info.publishedDate),
+    language: normalizeLanguage(info.language || ""),
+    genre: info.categories?.[0] || "",
+    isbn,
+  };
+}
+
+async function fetchGoogleBookByKeyword(isbn) {
+  const data = await fetchJsonWithProxyFallback(
+    `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(isbn)}`,
+  );
+  const item = (data.items || []).find((entry) =>
+    (entry.volumeInfo?.industryIdentifiers || []).some((identifier) => normalizeIsbn(identifier.identifier) === isbn),
+  ) || data.items?.[0];
+  const info = item?.volumeInfo;
+  if (!info) return null;
   return {
     title: info.title || "",
     author: (info.authors || []).join(", "),
@@ -655,7 +677,20 @@ async function importBooks(event) {
 }
 
 function closeBackup() {
+  backupDialog.classList.remove("open");
   if (backupDialog.open) backupDialog.close();
+}
+
+function openBackup() {
+  if (typeof backupDialog.showModal === "function") {
+    backupDialog.showModal();
+    return;
+  }
+  if (typeof backupDialog.show === "function") {
+    backupDialog.show();
+    return;
+  }
+  backupDialog.classList.add("open");
 }
 
 async function startScanner() {

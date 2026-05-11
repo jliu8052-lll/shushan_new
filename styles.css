@@ -261,6 +261,8 @@ h2 {
 .backup-menu {
   position: relative;
   align-self: end;
+  display: flex;
+  align-items: flex-end;
 }
 
 .backup-menu > .ghost-button {
@@ -433,6 +435,13 @@ textarea:focus {
 .backup-dialog {
   width: min(420px, calc(100vw - 32px));
   padding: 18px;
+}
+
+.backup-dialog.open {
+  display: block;
+  position: fixed;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
 }
 
 .backup-dialog-head {
@@ -630,6 +639,7 @@ textarea {
 
   .backup-menu {
     align-self: stretch;
+    align-items: flex-end;
   }
 
   .backup-menu > .ghost-button {
