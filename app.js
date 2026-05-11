@@ -386,6 +386,7 @@ async function fetchBookByIsbn(isbn) {
   const results = await Promise.allSettled([
     fetchGoogleBook(isbn),
     fetchGoogleBook(isbn, "zh"),
+    fetchOpenLibraryBookJsonp(isbn),
     fetchOpenLibraryBook(isbn),
     fetchOpenLibrarySearchBook(isbn),
   ]);
@@ -447,6 +448,43 @@ async function fetchOpenLibraryBook(isbn) {
     year: getYear(data.publish_date),
     language: guessLanguage(data.title || ""),
     genre: (data.subjects || [])[0] || "",
+    isbn,
+  };
+}
+
+function fetchOpenLibraryBookJsonp(isbn) {
+  return new Promise((resolve) => {
+    const callbackName = `openLibraryCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const script = document.createElement("script");
+    const timeout = window.setTimeout(() => cleanup(null), 8000);
+
+    window[callbackName] = (data) => {
+      const book = data?.[`ISBN:${isbn}`];
+      cleanup(book ? normalizeOpenLibraryBooksApiResult(book, isbn) : null);
+    };
+
+    script.onerror = () => cleanup(null);
+    script.src = `https://openlibrary.org/api/books?bibkeys=ISBN:${encodeURIComponent(isbn)}&jscmd=data&format=javascript&callback=${callbackName}`;
+    document.head.append(script);
+
+    function cleanup(result) {
+      window.clearTimeout(timeout);
+      delete window[callbackName];
+      script.remove();
+      resolve(result);
+    }
+  });
+}
+
+function normalizeOpenLibraryBooksApiResult(book, isbn) {
+  return {
+    title: book.title || "",
+    author: (book.authors || []).map((author) => author.name).filter(Boolean).join(", "),
+    publisher: (book.publishers || []).map((publisher) => publisher.name).filter(Boolean).join(", "),
+    coverUrl: book.cover?.medium || book.cover?.small || "",
+    year: getYear(book.publish_date),
+    language: guessLanguage([book.title, ...(book.authors || []).map((author) => author.name), ...(book.publishers || []).map((publisher) => publisher.name)].join(" ")),
+    genre: (book.subjects || [])[0]?.name || "",
     isbn,
   };
 }

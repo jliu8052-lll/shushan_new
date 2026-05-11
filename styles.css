@@ -271,10 +271,10 @@ h2 {
 .backup-popover {
   position: absolute;
   right: 0;
-  top: calc(100% + 6px);
+  bottom: calc(100% + 6px);
   z-index: 5;
   display: grid;
-  min-width: 148px;
+  min-width: 132px;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -283,12 +283,13 @@ h2 {
 }
 
 .backup-popover button {
-  min-height: 40px;
-  padding: 0 12px;
+  min-height: 36px;
+  padding: 0 10px;
   border: 0;
   border-bottom: 1px solid var(--line);
   background: #fff;
   color: var(--ink);
+  font-size: 14px;
   text-align: left;
 }
 
