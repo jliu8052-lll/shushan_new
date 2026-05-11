@@ -100,6 +100,7 @@ const lookupButton = document.querySelector("#lookup-isbn");
 const scanButton = document.querySelector("#scan-isbn");
 const lookupStatus = document.querySelector("#lookup-status");
 const exportButton = document.querySelector("#export-books");
+const exportMarkdownButton = document.querySelector("#export-markdown");
 const importButton = document.querySelector("#import-books");
 const importFile = document.querySelector("#import-file");
 const scannerDialog = document.querySelector("#scanner-dialog");
@@ -119,6 +120,7 @@ sortSelect.addEventListener("change", render);
 lookupButton.addEventListener("click", lookupCurrentIsbn);
 scanButton.addEventListener("click", startScanner);
 exportButton.addEventListener("click", exportBooks);
+exportMarkdownButton.addEventListener("click", exportMarkdown);
 importButton.addEventListener("click", () => importFile.click());
 importFile.addEventListener("change", importBooks);
 
@@ -500,6 +502,56 @@ function exportBooks() {
   link.download = `shushan-backup-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function exportMarkdown() {
+  const lines = ["# 书山藏书", "", `导出时间：${formatDateTime(new Date())}`, "", `共 ${books.length} 本`, ""];
+  const groups = [
+    ["reading", "正在读"],
+    ["want", "想读"],
+    ["done", "已读完"],
+  ];
+
+  groups.forEach(([status, label]) => {
+    const groupBooks = books
+      .filter((book) => book.status === status)
+      .sort((a, b) => a.title.localeCompare(b.title, "zh-CN"));
+    lines.push(`## ${label}（${groupBooks.length}）`, "");
+    if (!groupBooks.length) {
+      lines.push("_暂无_", "");
+      return;
+    }
+    groupBooks.forEach((book) => {
+      lines.push(`### ${book.title || "未命名书籍"}`);
+      lines.push(`- 作者：${book.author || ""}`);
+      lines.push(`- 出版：${[book.publisher, book.year].filter(Boolean).join("，")}`);
+      lines.push(`- 语言：${languageText[book.language] || languageText.other}`);
+      if (book.genre) lines.push(`- 分类：${book.genre}`);
+      if (book.isbn) lines.push(`- ISBN：${book.isbn}`);
+      if (book.tags?.length) lines.push(`- 标签：${book.tags.join("、")}`);
+      if (book.notes) lines.push(`- 备注：${book.notes.replaceAll("\\n", " ")}`);
+      lines.push("");
+    });
+  });
+
+  downloadText(`shushan-library-${new Date().toISOString().slice(0, 10)}.md`, lines.join("\\n"), "text/markdown");
+}
+
+function downloadText(filename, content, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function formatDateTime(date) {
+  return new Intl.DateTimeFormat("zh-CN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
 }
 
 async function importBooks(event) {
