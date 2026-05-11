@@ -110,6 +110,8 @@ let scannerStream;
 let scannerTimer;
 let zxingReader;
 let zxingControls;
+let scanCandidate = "";
+let scanCandidateCount = 0;
 
 document.querySelector("#open-form").addEventListener("click", () => openEditor());
 document.querySelector("#close-form").addEventListener("click", closeEditor);
@@ -529,16 +531,16 @@ function exportMarkdown() {
       if (book.genre) lines.push(`- 分类：${book.genre}`);
       if (book.isbn) lines.push(`- ISBN：${book.isbn}`);
       if (book.tags?.length) lines.push(`- 标签：${book.tags.join("、")}`);
-      if (book.notes) lines.push(`- 备注：${book.notes.replaceAll("\\n", " ")}`);
+      if (book.notes) lines.push(`- 备注：${book.notes.replace(/\r?\n/g, " ")}`);
       lines.push("");
     });
   });
 
-  downloadText(`shushan-library-${new Date().toISOString().slice(0, 10)}.md`, lines.join("\\n"), "text/markdown");
+  downloadText(`shushan-library-${new Date().toISOString().slice(0, 10)}.md`, lines.join("\n"), "text/markdown;charset=utf-8");
 }
 
 function downloadText(filename, content, type) {
-  const blob = new Blob([content], { type });
+  const blob = new Blob(["\uFEFF", content], { type });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -602,30 +604,29 @@ async function startScanner() {
 }
 
 function scanLoop(detector) {
-  scannerStatus.textContent = "把 ISBN 条码放进框内。";
+  scannerStatus.textContent = "把完整 ISBN 条码放进框内。";
   scannerTimer = window.setInterval(async () => {
     if (!scannerVideo.videoWidth) return;
     let isbn = "";
     try {
       const codes = await detector.detect(scannerVideo);
-      const rawValue = codes.find((code) => normalizeIsbn(code.rawValue))?.rawValue;
-      isbn = normalizeIsbn(rawValue || "");
+      const rawValue = codes.map((code) => code.rawValue).find((value) => parseScannedIsbn(value));
+      isbn = parseScannedIsbn(rawValue || "");
       if (!isbn) return;
     } catch {
       scannerStatus.textContent = "识别遇到问题，可以换个角度再试。";
       return;
     }
 
-    setValue("#isbn", isbn);
-    stopScanner();
-    lookupStatus.textContent = `已识别 ISBN ${isbn}，正在查询…`;
-    lookupCurrentIsbn();
+    acceptScannedIsbn(isbn);
   }, 700);
 }
 
 function stopScanner() {
   if (scannerTimer) window.clearInterval(scannerTimer);
   scannerTimer = null;
+  scanCandidate = "";
+  scanCandidateCount = 0;
   if (zxingControls?.stop) {
     zxingControls.stop();
   }
@@ -649,7 +650,7 @@ async function startZxingScanner() {
     const ZXingBrowser = window.ZXingBrowser;
     if (!ZXingBrowser?.BrowserMultiFormatOneDReader) throw new Error("ZXing unavailable");
 
-    scannerStatus.textContent = "把 ISBN 条码放进框内，保持几秒钟。";
+    scannerStatus.textContent = "把完整 ISBN 条码放进框内，保持几秒钟。";
     zxingReader = new ZXingBrowser.BrowserMultiFormatOneDReader();
     zxingControls = await zxingReader.decodeFromConstraints(
       {
@@ -662,12 +663,9 @@ async function startZxingScanner() {
       },
       scannerVideo,
       (result) => {
-        const isbn = normalizeIsbn(result?.getText?.() || result?.text || "");
+        const isbn = parseScannedIsbn(result?.getText?.() || result?.text || "");
         if (!isbn) return;
-        setValue("#isbn", isbn);
-        stopScanner();
-        lookupStatus.textContent = `已识别 ISBN ${isbn}，正在查询…`;
-        lookupCurrentIsbn();
+        acceptScannedIsbn(isbn);
       },
     );
   } catch (error) {
@@ -696,6 +694,56 @@ function normalizeIsbn(value) {
   return String(value || "")
     .replace(/[^0-9Xx]/g, "")
     .toUpperCase();
+}
+
+function parseScannedIsbn(value) {
+  const raw = normalizeIsbn(value);
+  const candidates = [raw, ...raw.match(/\d{13}|\d{9}[\dX]/g) || []];
+  return candidates.find(isValidIsbn) || "";
+}
+
+function acceptScannedIsbn(isbn) {
+  if (isbn === scanCandidate) {
+    scanCandidateCount += 1;
+  } else {
+    scanCandidate = isbn;
+    scanCandidateCount = 1;
+  }
+
+  scannerStatus.textContent =
+    scanCandidateCount < 2 ? `已看到 ${isbn}，请保持条码稳定…` : `已识别 ISBN ${isbn}`;
+  if (scanCandidateCount < 2) return;
+
+  setValue("#isbn", isbn);
+  stopScanner();
+  lookupStatus.textContent = `已识别 ISBN ${isbn}，正在查询…`;
+  lookupCurrentIsbn();
+}
+
+function isValidIsbn(value) {
+  const isbn = normalizeIsbn(value);
+  if (isbn.length === 10) return isValidIsbn10(isbn);
+  if (isbn.length === 13) return isValidIsbn13(isbn);
+  return false;
+}
+
+function isValidIsbn10(isbn) {
+  if (!/^\d{9}[\dX]$/.test(isbn)) return false;
+  const sum = isbn.split("").reduce((total, char, index) => {
+    const value = char === "X" ? 10 : Number(char);
+    return total + value * (10 - index);
+  }, 0);
+  return sum % 11 === 0;
+}
+
+function isValidIsbn13(isbn) {
+  if (!/^\d{13}$/.test(isbn)) return false;
+  const sum = isbn
+    .slice(0, 12)
+    .split("")
+    .reduce((total, char, index) => total + Number(char) * (index % 2 ? 3 : 1), 0);
+  const check = (10 - (sum % 10)) % 10;
+  return check === Number(isbn[12]);
 }
 
 function getYear(value) {
