@@ -258,16 +258,46 @@ h2 {
   flex: 1;
 }
 
-.backup-actions {
-  display: flex;
+.backup-menu {
+  position: relative;
   align-self: end;
-  gap: 8px;
 }
 
-.backup-actions .ghost-button {
-  align-self: end;
-  min-width: 58px;
+.backup-menu > .ghost-button {
+  min-width: 66px;
   padding: 0 12px;
+}
+
+.backup-popover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 5;
+  display: grid;
+  min-width: 148px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.backup-popover button {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  text-align: left;
+}
+
+.backup-popover button:last-child {
+  border-bottom: 0;
+}
+
+.backup-popover button:hover {
+  background: #eef4f4;
 }
 
 input,
@@ -596,8 +626,12 @@ textarea {
     align-items: stretch;
   }
 
-  .backup-actions {
+  .backup-menu {
     align-self: stretch;
+  }
+
+  .backup-menu > .ghost-button {
+    width: 100%;
   }
 
 }

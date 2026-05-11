@@ -99,6 +99,8 @@ const deleteButton = document.querySelector("#delete-book");
 const lookupButton = document.querySelector("#lookup-isbn");
 const scanButton = document.querySelector("#scan-isbn");
 const lookupStatus = document.querySelector("#lookup-status");
+const backupMenuButton = document.querySelector("#backup-menu-button");
+const backupPopover = document.querySelector("#backup-popover");
 const exportButton = document.querySelector("#export-books");
 const exportMarkdownButton = document.querySelector("#export-markdown");
 const importButton = document.querySelector("#import-books");
@@ -121,10 +123,16 @@ searchInput.addEventListener("input", render);
 sortSelect.addEventListener("change", render);
 lookupButton.addEventListener("click", lookupCurrentIsbn);
 scanButton.addEventListener("click", startScanner);
+backupMenuButton.addEventListener("click", () => {
+  backupPopover.hidden = !backupPopover.hidden;
+});
 exportButton.addEventListener("click", exportBooks);
 exportMarkdownButton.addEventListener("click", exportMarkdown);
 importButton.addEventListener("click", () => importFile.click());
 importFile.addEventListener("change", importBooks);
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".backup-menu")) backupPopover.hidden = true;
+});
 
 document.querySelectorAll(".nav-item").forEach((button) => {
   button.addEventListener("click", () => {
@@ -340,10 +348,14 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-async function lookupCurrentIsbn() {
-  const isbn = normalizeIsbn(valueOf("#isbn"));
+async function lookupCurrentIsbn(forcedIsbn) {
+  const isbn = forcedIsbn ? normalizeIsbn(forcedIsbn) : normalizeIsbn(valueOf("#isbn"));
   if (!isbn) {
     lookupStatus.textContent = "请先输入或扫描 ISBN。";
+    return;
+  }
+  if (!isValidIsbn(isbn)) {
+    lookupStatus.textContent = "ISBN 不完整或校验不通过，请重新扫描或补全。";
     return;
   }
 
@@ -491,6 +503,7 @@ function getGoogleCover(info) {
 }
 
 function exportBooks() {
+  backupPopover.hidden = true;
   const payload = {
     app: "书山",
     version: 1,
@@ -507,6 +520,7 @@ function exportBooks() {
 }
 
 function exportMarkdown() {
+  backupPopover.hidden = true;
   const lines = ["# 书山藏书", "", `导出时间：${formatDateTime(new Date())}`, "", `共 ${books.length} 本`, ""];
   const groups = [
     ["reading", "正在读"],
@@ -557,6 +571,7 @@ function formatDateTime(date) {
 }
 
 async function importBooks(event) {
+  backupPopover.hidden = true;
   const file = event.target.files?.[0];
   event.target.value = "";
   if (!file) return;
@@ -717,7 +732,7 @@ function acceptScannedIsbn(isbn) {
   setValue("#isbn", isbn);
   stopScanner();
   lookupStatus.textContent = `已识别 ISBN ${isbn}，正在查询…`;
-  lookupCurrentIsbn();
+  lookupCurrentIsbn(isbn);
 }
 
 function isValidIsbn(value) {
