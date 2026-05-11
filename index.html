@@ -73,11 +73,6 @@
           </label>
           <div class="backup-menu" aria-label="数据备份">
             <button class="ghost-button" id="backup-menu-button" type="button">备份</button>
-            <div class="backup-popover" id="backup-popover" hidden>
-              <button id="export-books" type="button">导出 JSON</button>
-              <button id="export-markdown" type="button">导出 Markdown</button>
-              <button id="import-books" type="button">导入 JSON</button>
-            </div>
             <input id="import-file" type="file" accept="application/json,.json" hidden />
           </div>
         </section>
@@ -168,6 +163,21 @@
           </div>
         </div>
       </form>
+    </dialog>
+
+    <dialog class="backup-dialog" id="backup-dialog">
+      <div class="backup-dialog-head">
+        <div>
+          <p class="eyebrow">数据备份</p>
+          <h3>导入与导出</h3>
+        </div>
+        <button class="ghost-button icon-button" id="close-backup" type="button" aria-label="关闭备份">×</button>
+      </div>
+      <div class="backup-options">
+        <button id="export-books" type="button">导出 JSON 备份</button>
+        <button id="export-markdown" type="button">导出 Markdown 清单</button>
+        <button id="import-books" type="button">导入 JSON 备份</button>
+      </div>
     </dialog>
 
     <dialog class="scanner-dialog" id="scanner-dialog">

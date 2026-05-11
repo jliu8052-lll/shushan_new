@@ -100,7 +100,7 @@ const lookupButton = document.querySelector("#lookup-isbn");
 const scanButton = document.querySelector("#scan-isbn");
 const lookupStatus = document.querySelector("#lookup-status");
 const backupMenuButton = document.querySelector("#backup-menu-button");
-const backupPopover = document.querySelector("#backup-popover");
+const backupDialog = document.querySelector("#backup-dialog");
 const exportButton = document.querySelector("#export-books");
 const exportMarkdownButton = document.querySelector("#export-markdown");
 const importButton = document.querySelector("#import-books");
@@ -119,20 +119,16 @@ document.querySelector("#open-form").addEventListener("click", () => openEditor(
 document.querySelector("#close-form").addEventListener("click", closeEditor);
 document.querySelector("#cancel-form").addEventListener("click", closeEditor);
 document.querySelector("#close-scanner").addEventListener("click", stopScanner);
+document.querySelector("#close-backup").addEventListener("click", closeBackup);
 searchInput.addEventListener("input", render);
 sortSelect.addEventListener("change", render);
 lookupButton.addEventListener("click", lookupCurrentIsbn);
 scanButton.addEventListener("click", startScanner);
-backupMenuButton.addEventListener("click", () => {
-  backupPopover.hidden = !backupPopover.hidden;
-});
+backupMenuButton.addEventListener("click", () => backupDialog.showModal());
 exportButton.addEventListener("click", exportBooks);
 exportMarkdownButton.addEventListener("click", exportMarkdown);
 importButton.addEventListener("click", () => importFile.click());
 importFile.addEventListener("change", importBooks);
-document.addEventListener("click", (event) => {
-  if (!event.target.closest(".backup-menu")) backupPopover.hidden = true;
-});
 
 document.querySelectorAll(".nav-item").forEach((button) => {
   button.addEventListener("click", () => {
@@ -417,9 +413,9 @@ async function fetchBookByIsbn(isbn) {
 
 async function fetchGoogleBook(isbn, language) {
   const langParam = language ? `&langRestrict=${encodeURIComponent(language)}` : "";
-  const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(isbn)}${langParam}`);
-  if (!response.ok) return null;
-  const data = await response.json();
+  const data = await fetchJsonWithProxyFallback(
+    `https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(isbn)}${langParam}`,
+  );
   const info = data.items?.[0]?.volumeInfo;
   if (!info) return null;
 
@@ -436,9 +432,7 @@ async function fetchGoogleBook(isbn, language) {
 }
 
 async function fetchOpenLibraryBook(isbn) {
-  const response = await fetch(`https://openlibrary.org/isbn/${encodeURIComponent(isbn)}.json`);
-  if (!response.ok) return null;
-  const data = await response.json();
+  const data = await fetchJsonWithProxyFallback(`https://openlibrary.org/isbn/${encodeURIComponent(isbn)}.json`);
   const author = await fetchOpenLibraryAuthors(data.authors || []);
   return {
     title: data.title || "",
@@ -490,9 +484,7 @@ function normalizeOpenLibraryBooksApiResult(book, isbn) {
 }
 
 async function fetchOpenLibrarySearchBook(isbn) {
-  const response = await fetch(`https://openlibrary.org/search.json?isbn=${encodeURIComponent(isbn)}`);
-  if (!response.ok) return null;
-  const data = await response.json();
+  const data = await fetchJsonWithProxyFallback(`https://openlibrary.org/search.json?isbn=${encodeURIComponent(isbn)}`);
   const doc = data.docs?.[0];
   if (!doc) return null;
   return {
@@ -559,8 +551,22 @@ function getGoogleCover(info) {
   return links.thumbnail || links.smallThumbnail || "";
 }
 
+async function fetchJsonWithProxyFallback(url) {
+  try {
+    return await fetchJson(url);
+  } catch {
+    return fetchJson(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+  }
+}
+
+async function fetchJson(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Request failed");
+  return response.json();
+}
+
 function exportBooks() {
-  backupPopover.hidden = true;
+  closeBackup();
   const payload = {
     app: "书山",
     version: 1,
@@ -577,7 +583,7 @@ function exportBooks() {
 }
 
 function exportMarkdown() {
-  backupPopover.hidden = true;
+  closeBackup();
   const lines = ["# 书山藏书", "", `导出时间：${formatDateTime(new Date())}`, "", `共 ${books.length} 本`, ""];
   const groups = [
     ["reading", "正在读"],
@@ -628,7 +634,7 @@ function formatDateTime(date) {
 }
 
 async function importBooks(event) {
-  backupPopover.hidden = true;
+  closeBackup();
   const file = event.target.files?.[0];
   event.target.value = "";
   if (!file) return;
@@ -646,6 +652,10 @@ async function importBooks(event) {
   } catch {
     window.alert("导入失败：请选择书山导出的 JSON 备份文件。");
   }
+}
+
+function closeBackup() {
+  if (backupDialog.open) backupDialog.close();
 }
 
 async function startScanner() {

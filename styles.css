@@ -268,39 +268,6 @@ h2 {
   padding: 0 12px;
 }
 
-.backup-popover {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 6px);
-  z-index: 5;
-  display: grid;
-  min-width: 132px;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: var(--shadow);
-}
-
-.backup-popover button {
-  min-height: 36px;
-  padding: 0 10px;
-  border: 0;
-  border-bottom: 1px solid var(--line);
-  background: #fff;
-  color: var(--ink);
-  font-size: 14px;
-  text-align: left;
-}
-
-.backup-popover button:last-child {
-  border-bottom: 0;
-}
-
-.backup-popover button:hover {
-  background: #eef4f4;
-}
-
 input,
 select,
 textarea {
@@ -447,7 +414,8 @@ textarea:focus {
 }
 
 .book-dialog,
-.scanner-dialog {
+.scanner-dialog,
+.backup-dialog {
   width: min(720px, calc(100vw - 28px));
   border: 0;
   border-radius: 10px;
@@ -456,9 +424,42 @@ textarea:focus {
 }
 
 .book-dialog::backdrop,
-.scanner-dialog::backdrop {
+.scanner-dialog::backdrop,
+.backup-dialog::backdrop {
   background: rgba(31, 41, 51, 0.36);
   backdrop-filter: blur(4px);
+}
+
+.backup-dialog {
+  width: min(420px, calc(100vw - 32px));
+  padding: 18px;
+}
+
+.backup-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.backup-options {
+  display: grid;
+  gap: 8px;
+}
+
+.backup-options button {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  text-align: left;
+}
+
+.backup-options button:hover {
+  background: #eef4f4;
 }
 
 .book-dialog form {
