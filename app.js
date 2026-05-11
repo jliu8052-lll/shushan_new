@@ -362,7 +362,7 @@ async function lookupCurrentIsbn(forcedIsbn) {
   try {
     const bookInfo = await fetchBookByIsbn(isbn);
     if (!bookInfo) {
-      lookupStatus.textContent = "数据源没有返回这本书，可以手动补充。";
+      lookupStatus.textContent = "本地没有记录，外部数据源也没有返回这本书。";
       return;
     }
     applyBookInfo(bookInfo);
@@ -377,17 +377,19 @@ async function lookupCurrentIsbn(forcedIsbn) {
 }
 
 async function fetchBookByIsbn(isbn) {
+  const existingBook = books.find((book) => normalizeIsbn(book.isbn) === isbn);
+  if (existingBook) return { ...existingBook };
   if (isbnOverrides[isbn]) return isbnOverrides[isbn];
 
   const googleResult = await fetchGoogleBook(isbn);
   if (googleResult) return googleResult;
+  const googleKeywordResult = await fetchGoogleBookByKeyword(isbn);
+  if (googleKeywordResult) return googleKeywordResult;
   return fetchOpenLibraryBook(isbn);
 }
 
 async function fetchGoogleBook(isbn) {
-  const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(isbn)}`);
-  if (!response.ok) return null;
-  const data = await response.json();
+  const data = await fetchGoogleBooksJsonp(`https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(isbn)}`);
   const info = data.items?.[0]?.volumeInfo;
   if (!info) return null;
 
@@ -418,6 +420,51 @@ async function fetchOpenLibraryBook(isbn) {
     genre: (data.subjects || [])[0] || "",
     isbn,
   };
+}
+
+async function fetchGoogleBookByKeyword(isbn) {
+  const data = await fetchGoogleBooksJsonp(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(isbn)}`);
+  const item =
+    (data.items || []).find((entry) =>
+      (entry.volumeInfo?.industryIdentifiers || []).some((identifier) => normalizeIsbn(identifier.identifier) === isbn),
+    ) || data.items?.[0];
+  const info = item?.volumeInfo;
+  if (!info) return null;
+
+  return {
+    title: info.title || "",
+    author: (info.authors || []).join(", "),
+    publisher: info.publisher || "",
+    coverUrl: getGoogleCover(info),
+    year: getYear(info.publishedDate),
+    language: normalizeLanguage(info.language || ""),
+    genre: info.categories?.[0] || "",
+    isbn,
+  };
+}
+
+function fetchGoogleBooksJsonp(url) {
+  return new Promise((resolve, reject) => {
+    const callbackName = `googleBooksCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const script = document.createElement("script");
+    const timeout = window.setTimeout(() => cleanup(null, new Error("Google Books timeout")), 7000);
+
+    window[callbackName] = (data) => cleanup(data);
+    script.onerror = () => cleanup(null, new Error("Google Books script failed"));
+    script.src = `${url}&callback=${callbackName}`;
+    document.head.append(script);
+
+    function cleanup(data, error) {
+      window.clearTimeout(timeout);
+      delete window[callbackName];
+      script.remove();
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve(data || {});
+    }
+  });
 }
 
 async function fetchOpenLibraryAuthors(authors) {
